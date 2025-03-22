@@ -1,63 +1,23 @@
-# Node.js / NPM
-node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-.npm
-.yarn/
-.pnp.*
-*.tgz
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
 .env
-.env.test
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-coverage/
-*.lcov
-.nyc_output/
-
-# PHP
-/vendor/
-composer.phar
-/composer.lock
-phpunit.xml
+.env.backup
+.env.production
+.phpactor.json
 .phpunit.result.cache
-.phpunit.cache/
-.php_cs.cache
-.php-cs-fixer.cache
-
-# Docker
-.DS_Store
-.dockerignore
-docker-compose.yml
-Dockerfile
-*.dockerfile
-.docker/
-
-# Logs
-logs
-*.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Editor directories and files
-.idea/
-.vscode/
-*.sublime-project
-*.sublime-workspace
-*.swp
-*.swo
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
