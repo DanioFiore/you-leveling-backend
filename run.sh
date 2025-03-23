@@ -5,17 +5,35 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# default environment variables
+APP_URL=${APP_URL}
+FORWARD_PHPMYADMIN_PORT="http://localhost:${FORWARD_PHPMYADMIN_PORT}"
+
+# cleanup the containers
+cleanup() {
+    echo -e "\n${YELLOW}Stopping containers...${NC}"
+    docker-compose down
+    echo -e "${GREEN}Containers stopped successfully${NC}"
+    exit 0
+}
+
+# register the cleanup function to be called on the EXIT signal
+trap cleanup EXIT SIGINT SIGTERM
+
+# load environment variables from .env file if it exists
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 echo -e "${GREEN}=== You Leveling Setup ===${NC}"
 
-# Controlla se Laravel è già installato verificando l'esistenza di artisan
+# check if laravel project is already installed or not. If not, create a new laravel project
 if [ ! -f "artisan" ]; then
     echo -e "${YELLOW}First time setup: Creating new Laravel project...${NC}"
     curl -s https://laravel.build/you-leveling | bash
-    
-    # Sposta tutti i file dalla sottodirectory you-leveling alla directory corrente
+    # move all files to the root directory
     mv you-leveling/* you-leveling/.* . 2>/dev/null
     rmdir you-leveling
-    
     echo -e "${GREEN}Laravel project created successfully!${NC}"
 else
     echo -e "${GREEN}Laravel already installed, proceeding with container setup...${NC}"
@@ -23,22 +41,20 @@ fi
 
 echo -e "${GREEN}Starting Docker containers...${NC}"
 
-# Ferma eventuali container in esecuzione
+# stop and remove the containers if they are already running
 docker-compose down
 
-# Avvia i container
+# start containers in detached mode
 docker-compose up -d --build
 
-# Verifica lo stato dei container
+# check container status
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}Containers started successfully!${NC}"
     echo -e "${YELLOW}Available URLs:${NC}"
-    echo "Laravel: http://localhost:8000"
-    echo "PhpMyAdmin: http://localhost:8080"
-    
+    echo "Laravel: ${APP_URL}"
+    echo "PhpMyAdmin: ${FORWARD_PHPMYADMIN_PORT}"
     echo -e "${GREEN}Setting permissions...${NC}"
     chmod -R 777 storage bootstrap/cache
-    
     echo -e "${GREEN}Entering container bash...${NC}"
     docker-compose exec app bash
 else
