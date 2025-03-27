@@ -62,3 +62,6 @@ Desktop.ini
 dist
 build
 .cache/
+
+# test
+*.rest
