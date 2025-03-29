@@ -6,6 +6,7 @@ use App\ApiResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -41,13 +42,32 @@ class AuthController extends Controller
                 throw new ValidationException($validator);
             }
 
-            $input = $request->all();
-            $input['password'] = bcrypt($input['password']);
-            $user = User::create($input);
+            $user = User::create([
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+            $token = $user->createToken('registerToken')->plainTextToken;
             $success['name'] =  $user->name;
             $success['email'] = $user->email;
+            $success['token'] = $token;
     
             return $success;
+        });
+    }
+
+    public function login(Request $request): JsonResponse
+    {
+        return ApiResponse::handle(function() use($request) {
+            if (Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
+                $user = Auth::user(); 
+                $success['token'] =  $user->createToken('MyApp')->plainTextToken; 
+                $success['name'] =  $user->name;
+    
+                return $this->sendResponse($success, 'User login successfully.');
+            } else { 
+                return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
+            } 
         });
     }
 }
