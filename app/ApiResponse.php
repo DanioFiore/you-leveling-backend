@@ -2,10 +2,11 @@
 
 namespace App;
 
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Log;
-use Exception;
 
 class ApiResponse
 {
@@ -28,7 +29,7 @@ class ApiResponse
      *
      * @note In debug mode or non-production environments, additional error details are included in responses
      */
-    public static function handle(callable $callback)
+    public static function handle(callable $callback): JsonResponse
     {
         try {
             // execute the callback function
@@ -70,7 +71,7 @@ class ApiResponse
      * @param int $statusCode The HTTP status code to return
      * @return \Illuminate\Http\JsonResponse The formatted JSON response
      */
-    private static function errorResponse(Exception $e, string $genericMessage, int $statusCode)
+    private static function errorResponse(Exception $e, string $genericMessage, int $statusCode): JsonResponse
     {
         $debug = config('app.debug') || in_array(config('app.env'), ['local', 'testing']);
         
