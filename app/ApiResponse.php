@@ -31,8 +31,9 @@ class ApiResponse
     public static function handle(callable $callback)
     {
         try {
-            // execute the callback function and return the result as a JSON response
+            // execute the callback function
             $result = $callback();
+
             return response()->json([
                 'status' => 'success',
                 'data' => $result
@@ -40,52 +41,54 @@ class ApiResponse
         } catch (ValidationException $e) {
             Log::warning('Validation Error: ' . $e->getMessage());
 
-            if (config('app.debug') || config('app.env') === 'local' || config('app.env') === 'testing') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
-                ], 500);
-            }
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation Error',
-                'errors' => $e->errors()
-            ], 422);
+            return self::errorResponse($e, 'Validation Error', 422);
         } catch (ModelNotFoundException $e) {
             Log::error('Resource not found: ' . $e->getMessage());
 
-            if (config('app.debug') || config('app.env') === 'local' || config('app.env') === 'testing') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
-                ], 500);
-            }
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Resource not found'
-            ], 404);
+            return self::errorResponse($e, 'Resource not found', 404);
         } catch (Exception $e) {
             Log::error('Internal error: ' . $e->getMessage());
 
-            if (config('app.debug') || config('app.env') === 'local' || config('app.env') === 'testing') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
-                ], 500);
-            }
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'An internal error occurred',
-            ], 500);
+            return self::errorResponse($e, 'An internal error occurred', 500);
         }
     }
+
+
+    /**
+     * Generate an error response based on an exception
+     *
+     * This method creates a JSON response for error handling with appropriate data
+     * based on the application environment.
+     *
+     * In debug mode (local or testing environments), it includes detailed error information
+     * such as the error message, file, and line number.
+     *
+     * In production, it shows only a generic message and validation errors if available.
+     *
+     * @param Exception $e The exception that was thrown
+     * @param string $genericMessage A user-friendly message for production environments
+     * @param int $statusCode The HTTP status code to return
+     * @return \Illuminate\Http\JsonResponse The formatted JSON response
+     */
+    private static function errorResponse(Exception $e, string $genericMessage, int $statusCode)
+    {
+        $debug = config('app.debug') || in_array(config('app.env'), ['local', 'testing']);
+        
+        if ($debug) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], $statusCode);
+        }
+        
+        return response()->json([
+            'status' => 'error',
+            'message' => $genericMessage,
+            // if is a validation exception, include the errors
+            'errors' => method_exists($e, 'errors') ? $e->errors() : null
+        ], $statusCode);
+    }
+
 }
