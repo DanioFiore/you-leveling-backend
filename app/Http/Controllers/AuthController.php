@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\ApiResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -31,14 +32,15 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         return ApiResponse::handle(function() use ($request) {
+
             $validator = Validator::make($request->all(), [
                 'name' => ['required'],
-                'email' => ['required', 'email'],
+                'email' => ['required', 'string', 'email', 'unique:users,email'],
                 'password' => ['required'],
                 'confirmPassword' => ['required', 'same:password']
             ]);
     
-            if($validator->fails()){
+            if ($validator->fails()){
                 throw new ValidationException($validator);
             }
 
@@ -56,18 +58,35 @@ class AuthController extends Controller
         });
     }
 
-    public function login(Request $request): JsonResponse
+    // TODO: implement the method, this is only a copy-paste
+    public function login(Request $request)
     {
-        return ApiResponse::handle(function() use($request) {
-            if (Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
-                $user = Auth::user(); 
-                $success['token'] =  $user->createToken('MyApp')->plainTextToken; 
-                $success['name'] =  $user->name;
+        return ApiResponse::handle(function() use ($request) {
+
+            $validator = Validator::make($request->all(), [
+                'email'    => ['required', 'string', 'email', 'exists:users,email'],
+                'password' => ['required', 'string']
+            ]);
     
-                return $this->sendResponse($success, 'User login successfully.');
-            } else { 
-                return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
-            } 
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+    
+            $user = User::where('email', $request->email)->first();
+    
+            // check if the user exists and the provided password is correct.
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                throw new Exception('Invalid credentials');
+            }
+    
+            // generate a token for the authenticated user.
+            $token = $user->createToken('loginToken')->plainTextToken;
+    
+            // return the user data and token in the response
+            return [
+                'user'   => $user,
+                'token'  => $token,
+            ];
         });
     }
 }
