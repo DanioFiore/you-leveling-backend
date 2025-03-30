@@ -35,10 +35,19 @@ class ApiResponse
             // execute the callback function
             $result = $callback();
 
-            return response()->json([
+            $response = [
                 'status' => 'success',
-                'data' => $result
-            ], 200);
+            ];
+
+            if (is_string($result)) {
+                $response['message'] = $result;
+            } else if (is_array($result) || is_object($result)) {
+                $response['data'] = $result;
+            } else {
+                $response['message'] = 'Operation completed successfully';
+            }
+
+            return response()->json($response, 200);
         } catch (ValidationException $e) {
             Log::warning('Validation Error: ' . $e->getMessage());
 
