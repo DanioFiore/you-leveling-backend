@@ -13,5 +13,5 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Apply sanctum authentication middleware to a group of routes
 Route::middleware('auth:sanctum')->group(function () {
-    
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
