@@ -101,11 +101,20 @@ class AuthController extends Controller
         });
     }
 
+    /**
+     * Handles user logout by revoking the current access token.
+     *
+     * This method retrieves the authenticated user from the request,
+     * checks if they are authenticated, and then revokes their current
+     * access token, effectively logging them out of the system.
+     *
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating logout success or error.
+     * @throws \Exception If the user is not authenticated.
+     */
     public function logout(): JsonResponse
     {
         return ApiResponse::handle(function() {
 
-            // Retrieve the authenticated user from the request.
             $user = Auth::user();
 
             if (!$user) {
