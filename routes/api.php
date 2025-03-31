@@ -21,7 +21,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users', [UsersController::class, 'index']);
     Route::get('/users/{id}', [UsersController::class, 'show']);
     Route::patch('/users', [UsersController::class, 'update']);
+    Route::patch('/users/{id}/restore', [UsersController::class, 'restore']);
+    Route::delete('/users/{id}', [UsersController::class, 'softDestroy']);
 });
-
-// TODO: create a middleware for admin users
-// Route::delete('/users', [UsersController::class, 'destroy']);

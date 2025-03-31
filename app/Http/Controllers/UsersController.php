@@ -7,6 +7,7 @@ use App\ApiResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -52,7 +53,7 @@ class UsersController extends Controller
                 throw new ValidationException($validator);
             }
             
-            if ($id !== Auth::user()->id) {
+            if ($id !== Auth::user()->id || Auth::user()->is_admin) {
                 throw new Exception('You cannot view other users');
             }
 
@@ -91,7 +92,7 @@ class UsersController extends Controller
                 throw new ValidationException($validator);
             }
 
-            if ($request->input('id') !== Auth::user()->id) {
+            if ($request->input('id') !== Auth::user()->id && !Auth::user()->is_admin) {
                 throw new Exception('You cannot update other users');
             }
 
@@ -112,6 +113,114 @@ class UsersController extends Controller
             $user->save();
 
             return 'User updated successfully';
+        });
+    }
+
+    /**
+     * Soft deletes a user.
+     * 
+     * This method handles the soft deletion of a user identified by their ID. It performs the following steps:
+     * 1. Validates that the given ID is a valid user ID in the database
+     * 2. Checks that the authenticated user has permission to delete the user (must be admin or the same user)
+     * 3. Finds the user and soft deletes it
+     * 
+     * @param int $id The ID of the user to be soft deleted
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating success or failure
+     * @throws \Illuminate\Validation\ValidationException When validation fails
+     * @throws \Exception When user tries to delete another user without admin privileges
+     */
+    public function softDestroy(int $id): JsonResponse
+    {
+        return ApiResponse::handle(function () use ($id) {
+
+            $validator = Validator::make(['id' => $id], [
+                'id' => ['bail', 'required', 'integer', 'exists:users,id'],
+            ]);
+
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+
+            if ($id !== Auth::user()->id && !Auth::user()->is_admin) {
+                throw new Exception('You cannot delete other users');
+            }
+
+            $user = User::findOrFail($id);
+            $user->delete();
+
+            return 'User soft-deleted successfully';
+        });
+    }
+
+    /**
+     * Restores a soft-deleted user.
+     * 
+     * This method handles the restoration of a soft-deleted user identified by their ID. It performs the following steps:
+     * 1. Validates that the given ID is a valid user ID in the database
+     * 2. Checks that the authenticated user has permission to restore the user (must be admin or the same user)
+     * 3. Finds the user and restores it
+     * 
+     * @param int $id The ID of the user to be restored
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating success or failure
+     * @throws \Illuminate\Validation\ValidationException When validation fails
+     * @throws \Exception When user tries to restore another user without admin privileges
+     */
+    public function restore(int $id): JsonResponse
+    {
+        return ApiResponse::handle(function () use ($id) {
+
+            $validator = Validator::make(['id' => $id], [
+                'id' => ['bail', 'required', 'integer', 'exists:users,id'],
+            ]);
+
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+
+            if ($id !== Auth::user()->id) {
+                throw new Exception('You cannot restore other users');
+            }
+
+            $user = User::withTrashed()->findOrFail($id);
+            $user->restore();
+
+            return 'User restored successfully';
+        });
+    }
+
+    /**
+     * Permanently deletes a user.
+     * 
+     * This method handles the permanent deletion of a user identified by their ID. It performs the following steps:
+     * 1. Validates that the given ID is a valid user ID in the database
+     * 2. Checks that the authenticated user has permission to delete the user (must be admin or the same user)
+     * 3. Finds the user and permanently deletes it
+     * 
+     * @param int $id The ID of the user to be permanently deleted
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating success or failure
+     * @throws \Illuminate\Validation\ValidationException When validation fails
+     * @throws \Exception When user tries to delete another user without admin privileges
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        return ApiResponse::handle(function () use ($id) {
+
+            $validator = Validator::make(['id' => $id], [
+                'id' => ['bail', 'required', 'integer', 'exists:users,id'],
+            ]);
+
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+
+            if ($id !== Auth::user()->id && !Auth::user()->is_admin) {
+                throw new Exception('You cannot delete other users');
+            }
+
+            $user = User::withTrashed()->findOrFail($id);
+            $user->forceDelete();
+
+            return 'User permanently deleted successfully';
         });
     }
 }
