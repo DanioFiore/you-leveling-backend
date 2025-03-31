@@ -35,10 +35,10 @@ class AuthController extends Controller
         return ApiResponse::handle(function() use ($request) {
 
             $validator = Validator::make($request->all(), [
-                'name' => ['required'],
-                'email' => ['required', 'string', 'email', 'unique:users,email'],
-                'password' => ['required'],
-                'confirmPassword' => ['required', 'same:password']
+                'name' => ['bail', 'required'],
+                'email' => ['bail', 'required', 'string', 'email', 'unique:users,email'],
+                'password' => ['bail', 'required'],
+                'confirmPassword' => ['bail', 'required', 'same:password']
             ]);
     
             if ($validator->fails()){
@@ -75,8 +75,8 @@ class AuthController extends Controller
         return ApiResponse::handle(function() use ($request) {
 
             $validator = Validator::make($request->all(), [
-                'email'    => ['required', 'string', 'email', 'exists:users,email'],
-                'password' => ['required', 'string']
+                'email'    => ['bail', 'required', 'string', 'email', 'exists:users,email'],
+                'password' => ['bail', 'required', 'string']
             ]);
     
             if ($validator->fails()) {

@@ -45,7 +45,7 @@ class UsersController extends Controller
         return ApiResponse::handle(function () use ($id) {
 
             $validator = Validator::make(['id' => $id], [
-                'id' => ['required', 'integer', 'exists:users,id'],
+                'id' => ['bail', 'required', 'integer', 'exists:users,id'],
             ]);
 
             if ($validator->fails()) {
@@ -82,9 +82,9 @@ class UsersController extends Controller
         return ApiResponse::handle(function () use ($request) {
 
             $validator = Validator::make($request->all(), [
-                'id' => ['required', 'integer', 'exists:users,id'],
-                'name' => ['nullable', 'string', 'max:255'],
-                'email' => ['nullable', 'string', 'email', 'max:255'],
+                'id' => ['bail', 'required', 'integer', 'exists:users,id'],
+                'name' => ['bail', 'nullable', 'string', 'max:255'],
+                'email' => ['bail', 'nullable', 'string', 'email', 'max:255'],
             ]);
 
             if ($validator->fails()) {
