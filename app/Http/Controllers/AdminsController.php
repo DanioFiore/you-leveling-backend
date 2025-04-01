@@ -43,13 +43,13 @@ class AdminsController extends Controller
      * @throws \Exception  If the authenticated user is not an admin
      * @return \Illuminate\Http\JsonResponse  Response indicating success or failure
      */
-    public function update(Request $request): JsonResponse
+    public function update(Request $request, int $id): JsonResponse
     {
         return ApiResponse::handle(function () use ($request) {
 
-            $validator = Validator::make($request->all(), [
+            $validator = Validator::make(array_merge($request->all(), ['id' => $id]), [
                 'id' => ['bail', 'required', 'integer', 'exists:users,id'],
-                'is_admin' => ['bail', 'required', 'integer', 'in:0,1']
+                'is_admin' => ['bail', 'required', 'boolean']
             ]);
 
             if ($validator->fails()) {

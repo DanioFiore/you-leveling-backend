@@ -23,4 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/users', [UsersController::class, 'update']);
     Route::patch('/users/{id}/restore', [UsersController::class, 'restore']);
     Route::delete('/users/{id}', [UsersController::class, 'softDestroy']);
+
+    // ADMINS
+    Route::get('/admins', [AdminsController::class, 'index']);
+    Route::patch('/admins/{id}', [AdminsController::class, 'update']);
 });
