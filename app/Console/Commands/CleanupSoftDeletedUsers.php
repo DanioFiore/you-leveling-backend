@@ -13,7 +13,7 @@ class CleanupSoftDeletedUsers extends Command
      *
      * @var string
      */
-    protected $signature = 'app:cleanup';
+    protected $signature = 'users:cleanup';
 
     /**
      * The console command description.
